@@ -1,5 +1,29 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>旅友WiFi PoCページ</title>
+</head>
+<body>
+<h1>旅友WiFi PoC テストページ</h1>
+
+<p>本サービスでは、位置情報データを取得します。<br>
+「位置情報を取得する」ボタンを押すことで、位置情報取得と利用規約に同意したものとみなします。<br>
+利用規約については<a href="terms.html">こちら</a>をご確認ください。</p>
+
+<p>
+This service collects your location data.<br>
+By clicking the "Get Location" button, you agree to the Terms of Use and location data collection.<br>
+Please review the <a href="terms.html">Terms of Use</a> here.
+</p>
+
+<button onclick="getLocation()">位置情報を取得する / Get Location</button>
+
+<div id="output"></div>
+
 <script>
-const endpoint = "https://script.google.com/macros/s/AKfycbxJnyvOAnQWtGQX6jncScHsUnWBrIHuxyFbIOB3A78UaW2oWNhGKAahxsOUlMGR0ruXZg/exec";
+const endpoint = "https://script.google.com/macros/s/AKfycbxkBzg43sdMEKYzXhCVfFw7EJyJPc8SsuVw2mW05USbYrlDpLUUUpm_r1-Jt3Ksqq1o9A/exec";
 
 function getLocation() {
 if (navigator.geolocation) {
@@ -13,15 +37,18 @@ function showPosition(position) {
 const lat = position.coords.latitude;
 const lng = position.coords.longitude;
 
-document.getElementById("output").innerHTML = "緯度: " + lat + "<br>経度: " + lng;
+document.getElementById("output").innerHTML =
+"緯度: " + lat + "<br>経度: " + lng;
 
-// スプレッドシートに送信
 fetch(endpoint, {
 method: "POST",
-body: JSON.stringify({ latitude: lat, longitude: lng }),
 headers: {
 "Content-Type": "application/json"
-}
+},
+body: JSON.stringify({
+latitude: lat,
+longitude: lng
+})
 })
 .then(response => response.text())
 .then(data => console.log("Success:", data))
@@ -32,3 +59,5 @@ function showError(error) {
 document.getElementById("output").innerHTML = "位置情報を取得できませんでした。";
 }
 </script>
+</body>
+</html>
