@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>旅友WiFi PoCページ</title>
+</head>
+<body>
+<h1>旅友WiFi PoC テストページ</h1>
+<p>このページでは、位置情報を取得します。ブラウザの許可をお願いします！</p>
+
+<button onclick="getLocation()">位置情報を取得する</button>
+
+<div id="output"></div>
+
+<script>
+function getLocation() {
+if (navigator.geolocation) {
+navigator.geolocation.getCurrentPosition(showPosition, showError);
+} else {
+document.getElementById("output").innerHTML = "お使いのブラウザは位置情報取得に対応していません。";
+}
+}
+
+function showPosition(position) {
+document.getElementById("output").innerHTML =
+"緯度: " + position.coords.latitude + "<br>経度: " + position.coords.longitude;
+}
+
+function showError(error) {
+switch(error.code) {
+case error.PERMISSION_DENIED:
+alert("ユーザーが位置情報の利用を拒否しました。");
+break;
+case error.POSITION_UNAVAILABLE:
+alert("位置情報が利用できません。");
+break;
+case error.TIMEOUT:
+alert("位置情報取得がタイムアウトしました。");
+break;
+case error.UNKNOWN_ERROR:
+alert("不明なエラーが発生しました。");
+break;
+}
+}
+</script>
+</body>
+</html>
