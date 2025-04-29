@@ -25,7 +25,7 @@ Please review the <a href="terms.html">Terms of Use</a> here.
 <div id="output"></div>
 
 <script>
-const endpoint = "https://script.google.com/macros/s/AKfycbz1x75AYypaFE2Qcqtme-2dTlqmrBU-1Sa51P-asPhG6anMwGPPXg6JyaGFJXqkdDiRRA/exec";
+const endpoint = "https://script.google.com/macros/s/AKfycbzP7uWv2nEdYNhkIsC5km2K9mFly4HDkcnkN3lhhfRm28SOER9_edW3nT5vZ7NmvmPUHg/exec";
 
 function getLocation() {
 if (navigator.geolocation) {
@@ -42,7 +42,6 @@ const lng = position.coords.longitude;
 document.getElementById("output").innerHTML =
 "緯度: " + lat + "<br>経度: " + lng;
 
-// スプレッドシートに送信
 fetch(endpoint, {
 method: "POST",
 body: JSON.stringify({
