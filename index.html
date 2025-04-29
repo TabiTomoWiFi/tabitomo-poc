@@ -1,4 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>旅友WiFi PoC</title>
+</head>
+<body>
+<h1>旅友WiFi PoC テストページ</h1>
+<p>このページは位置情報を取得し、Googleスプレッドシートに送信します。</p>
+<button onclick="getLocation()">位置情報を送信する</button>
+<div id="output"></div>
+
 <script>
+function getLocation() {
+if (navigator.geolocation) {
+navigator.geolocation.getCurrentPosition(sendPosition, showError);
+} else {
+document.getElementById("output").innerHTML = "このブラウザでは位置情報が取得できません。";
+}
+}
+
+function sendPosition(position) {
+const lat = position.coords.latitude;
+const lng = position.coords.longitude;
+document.getElementById("output").innerHTML = `緯度: ${lat}<br>経度: ${lng}`;
+
 fetch("https://script.google.com/macros/s/AKfycbzkh-gililjD-gY2yUpglaNZbE_Iswjujr3gP3eDpRru6xl3St0ZqRnpKTPWp_2rVENsw/exec", {
 method: "POST",
 headers: {
@@ -8,5 +33,12 @@ body: JSON.stringify({
 latitude: lat,
 longitude: lng
 })
-})
+});
+}
+
+function showError() {
+document.getElementById("output").innerHTML = "位置情報の取得に失敗しました。";
+}
 </script>
+</body>
+</html>
