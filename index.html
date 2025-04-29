@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>旅友WiFi PoCページ</title>
+<title>旅友WiFi PoCページ（フォーム連携版）</title>
 </head>
 <body>
-<h1>旅友WiFi PoC テストページ</h1>
+<h1>旅友WiFi PoC テストページ（フォーム連携版）</h1>
 
 <p>
 本サービスでは、位置情報データを取得します。<br>
@@ -25,8 +25,6 @@ Please review the <a href="terms.html">Terms of Use</a> here.
 <div id="output"></div>
 
 <script>
-const endpoint = "https://script.google.com/macros/s/AKfycbwwgfMRkP9ULFSAsT9Wf4pVy3EI-RU6xbB2tf5BtXddk5Q_s0hb8izWvMSgKCX8pSqSHg/exec";
-
 function getLocation() {
 if (navigator.geolocation) {
 navigator.geolocation.getCurrentPosition(showPosition, showError);
@@ -42,22 +40,22 @@ const lng = position.coords.longitude;
 document.getElementById("output").innerHTML =
 "緯度: " + lat + "<br>経度: " + lng;
 
-fetch(endpoint, {
+const formUrl = "https://docs.google.com/forms/d/e/1FAIpQLSepMK4Zk1EhjajtxLi81N_G2AH-35C-f8z9O-f44Jq5q_kF4A/formResponse";
+
+const formData = new FormData();
+formData.append("entry.1128339468", lat);
+formData.append("entry.1570277800", lng);
+
+fetch(formUrl, {
 method: "POST",
-body: JSON.stringify({
-latitude: lat,
-longitude: lng
-}),
-headers: {
-"Content-Type": "application/json"
-}
+mode: "no-cors",
+body: formData
 })
-.then(response => response.text())
-.then(data => {
-console.log("Success:", data);
+.then(() => {
+console.log("位置情報送信成功！");
 })
 .catch(error => {
-console.error("Error:", error);
+console.error("送信エラー:", error);
 });
 }
 
