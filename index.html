@@ -3,16 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>旅友WiFi PoCページ（フォーム連携版）</title>
+<title>旅友WiFi PoCページ</title>
 </head>
 <body>
-<h1>旅友WiFi PoC テストページ（フォーム連携版）</h1>
+<h1>旅友WiFi PoC テストページ</h1>
 
-<p>
-本サービスでは、位置情報データを取得します。<br>
+<p>本サービスでは、位置情報データを取得します。<br>
 「位置情報を取得する」ボタンを押すことで、位置情報取得と利用規約に同意したものとみなします。<br>
-利用規約については<a href="terms.html">こちら</a>をご確認ください。
-</p>
+利用規約については<a href="terms.html">こちら</a>をご確認ください。</p>
 
 <p>
 This service collects your location data.<br>
@@ -40,40 +38,19 @@ const lng = position.coords.longitude;
 document.getElementById("output").innerHTML =
 "緯度: " + lat + "<br>経度: " + lng;
 
-const formUrl = "https://docs.google.com/forms/d/e/1FAIpQLSepMK4Zk1EhjajtxLi81N_G2AH-35C-f8z9O-f44Jq5q_kF4A/formResponse";
-
-const formData = new FormData();
-formData.append("entry.1128339468", lat);
-formData.append("entry.1570277800", lng);
-
-fetch(formUrl, {
+// Googleフォームに送信
+fetch("https://docs.google.com/forms/d/e/1FAIpQLSepMK4Zk1EhjajtxLi81N_G2AH-35C-f8z9O-f44Jq5q_kF4A/formResponse", {
 method: "POST",
 mode: "no-cors",
-body: formData
-})
-.then(() => {
-console.log("位置情報送信成功！");
-})
-.catch(error => {
-console.error("送信エラー:", error);
+headers: {
+"Content-Type": "application/x-www-form-urlencoded"
+},
+body: `entry.1394337396=${lat}&entry.1283626445=${lng}`
 });
 }
 
 function showError(error) {
-switch(error.code) {
-case error.PERMISSION_DENIED:
-alert("ユーザーが位置情報の利用を拒否しました。");
-break;
-case error.POSITION_UNAVAILABLE:
-alert("位置情報が利用できません。");
-break;
-case error.TIMEOUT:
-alert("位置情報取得がタイムアウトしました。");
-break;
-case error.UNKNOWN_ERROR:
-alert("不明なエラーが発生しました。");
-break;
-}
+document.getElementById("output").innerHTML = "位置情報を取得できませんでした。";
 }
 </script>
 </body>
