@@ -4,11 +4,16 @@
   <meta charset="UTF-8" />
   <title>旅友WiFi - 位置情報ログ（JST）</title>
   <style>
-    body { font-family: sans-serif; padding: 20px; }
-    h1 { color: #333; }
+    body { font-family: sans-serif; padding: 20px; background-color: #f9f9f9; }
+    h1 { color: #222; }
     .entry {
       border-bottom: 1px solid #ccc;
       padding: 10px 0;
+      background: #fff;
+      margin-bottom: 10px;
+      padding-left: 10px;
+      border-radius: 6px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
     }
   </style>
 </head>
@@ -31,33 +36,27 @@
 
       const container = document.getElementById('log-container');
       if (error) {
-        container.innerHTML = 'エラーが発生しました。';
+        container.innerHTML = '❌ エラーが発生しました。';
         console.error(error);
         return;
       }
 
       if (!data || data.length === 0) {
-        container.innerHTML = 'データがありません。';
+        container.innerHTML = '📭 データがありません。';
         return;
       }
 
       container.innerHTML = '';
       data.forEach(row => {
         console.log('timestamp raw value:', row.timestamp);
-let formatted = '(変換失敗)';
-try {
-  const parts = row.timestamp.match(
-    /^(\d+)-(\d+)-(\d+)T(\d+):(\d+):(\d+)\+00:00$/
-  );
-  if (parts) {
-    const [, y, m, d, h, min, s] = parts.map(Number);
-    const utc = new Date(Date.UTC(y, m - 1, d, h, min, s));
-    const jst = new Date(utc.getTime() + 9 * 60 * 60 * 1000);
-    formatted = jst.toLocaleString('ja-JP');
-  }
-} catch (e) {
-  console.error('正規化エラー:', e);
-}
+        let formatted = '(変換失敗)';
+        try {
+          const date = new Date(row.timestamp);  // UTCとして解釈
+          const jst = new Date(date.getTime() + 9 * 60 * 60 * 1000);  // JSTへ変換
+          formatted = jst.toLocaleString('ja-JP');
+        } catch (e) {
+          console.error('変換エラー:', e);
+        }
 
         const entry = document.createElement('div');
         entry.className = 'entry';
