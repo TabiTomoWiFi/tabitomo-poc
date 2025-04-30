@@ -1,16 +1,53 @@
 <!DOCTYPE html>
-<html>
+<html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>旅友WiFi PoC</title>
+  <title>旅友WiFi 位置情報PoC / TabitomoWiFi Location PoC</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    .notice { color: red; font-weight: bold; }
+    .footer { margin-top: 30px; font-size: 0.9em; }
+    .input-group { margin: 10px 0; }
+  </style>
 </head>
 <body>
+  <h1>旅友WiFi 位置情報PoC / TabitomoWiFi Location PoC</h1>
+  <p class="notice">※本サービスは技術検証用のPoCです（This is a Proof of Concept for testing purposes only）</p>
 
-  <h1>旅友WiFi 位置情報PoC</h1>
-  <button onclick="sendLocation()">位置情報を送信</button>
+  <div class="input-group">
+    <label>国籍 / Nationality: <input type="text" id="nationality" required></label>
+  </div>
+  <div class="input-group">
+    <label>性別 / Gender: 
+      <select id="gender" required>
+        <option value="">選択 / Select</option>
+        <option value="男性 / Male">男性 / Male</option>
+        <option value="女性 / Female">女性 / Female</option>
+        <option value="その他 / Other">その他 / Other</option>
+      </select>
+    </label>
+  </div>
+  <div class="input-group">
+    <label>年齢 / Age: <input type="number" id="age" min="0" required></label>
+  </div>
+
+  <button onclick="sendLocation()">位置情報を送信 / Send Location</button>
+
+  <div class="footer">
+    <p><a href="terms.html" target="_blank">利用規約 / Terms of Use</a></p>
+  </div>
 
   <script>
     function sendLocation() {
+      const nationality = document.getElementById("nationality").value;
+      const gender = document.getElementById("gender").value;
+      const age = document.getElementById("age").value;
+
+      if (!nationality || !gender || !age) {
+        alert("すべての情報を入力してください / Please fill out all fields.");
+        return;
+      }
+
       navigator.geolocation.getCurrentPosition(function (position) {
         const latitude = position.coords.latitude;
         const longitude = position.coords.longitude;
@@ -21,20 +58,19 @@
           body: JSON.stringify({
             latitude,
             longitude,
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
+            nationality,
+            gender,
+            age
           })
-        }).then(() => {
-          alert("位置情報送信完了！");
-        }).catch(err => {
-          console.error("送信失敗:", err);
-          alert("送信に失敗しました");
-        });
-      }, function (error) {
-        console.error("位置情報取得失敗:", error);
-        alert("位置情報を取得できませんでした");
+        })
+        .then(() => alert("位置情報送信完了！ / Location sent successfully!"))
+        .catch(() => alert("送信に失敗しました / Failed to send location"));
       });
     }
-  </script>
 
+    // 5分ごとに自動送信（300,000ミリ秒）
+    setInterval(sendLocation, 300000);
+  </script>
 </body>
 </html>
