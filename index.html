@@ -2,53 +2,52 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>旅友WiFi 位置情報PoC / TabitomoWiFi Location PoC</title>
+  <title>旅友WiFi 位置情報PoC</title>
   <style>
-    body { font-family: sans-serif; padding: 20px; }
-    .notice { color: red; font-weight: bold; }
-    .footer { margin-top: 30px; font-size: 0.9em; }
-    .input-group { margin: 10px 0; }
+    body { font-family: sans-serif; margin: 30px; }
+    label, input, select { display: block; margin-top: 10px; }
+    .note { color: red; margin-top: 20px; font-weight: bold; }
   </style>
 </head>
 <body>
-  <h1>旅友WiFi 位置情報PoC / TabitomoWiFi Location PoC</h1>
-  <p class="notice">※本サービスは技術検証用のPoCです（This is a Proof of Concept for testing purposes only）</p>
+  <h1>旅友WiFi 位置情報PoC</h1>
 
-  <div class="input-group">
-    <label>国籍 / Nationality: <input type="text" id="nationality" required></label>
-  </div>
-  <div class="input-group">
-    <label>性別 / Gender: 
-      <select id="gender" required>
-        <option value="">選択 / Select</option>
-        <option value="男性 / Male">男性 / Male</option>
-        <option value="女性 / Female">女性 / Female</option>
-        <option value="その他 / Other">その他 / Other</option>
-      </select>
-    </label>
-  </div>
-  <div class="input-group">
-    <label>年齢 / Age: <input type="number" id="age" min="0" required></label>
-  </div>
+  <div class="note">※これはPoC（概念実証）用のページです。位置情報を自動送信します。</div>
 
-  <button onclick="sendLocation()">位置情報を送信 / Send Location</button>
+  <label>国籍 / Nationality:
+    <input type="text" id="nationality" placeholder="例：Japan">
+  </label>
 
-  <div class="footer">
-    <p><a href="terms.html" target="_blank">利用規約 / Terms of Use</a></p>
-  </div>
+  <label>性別 / Gender:
+    <select id="gender">
+      <option value="">選択してください</option>
+      <option value="Male">男性 / Male</option>
+      <option value="Female">女性 / Female</option>
+      <option value="Other">その他 / Other</option>
+    </select>
+  </label>
+
+  <label>年齢 / Age:
+    <input type="number" id="age" placeholder="例：30">
+  </label>
+
+  <button onclick="startSending()">位置情報を送信 / Start Location Tracking</button>
+
+  <p style="margin-top: 30px;">
+    <a href="terms.html" target="_blank">▶ 利用規約 / Terms of Service</a>
+  </p>
 
   <script>
+    let sendCount = 0;
+    const maxSends = 12; // 最大12回（＝1時間）
+    let intervalId;
+
     function sendLocation() {
-      const nationality = document.getElementById("nationality").value;
-      const gender = document.getElementById("gender").value;
-      const age = document.getElementById("age").value;
+      const nationality = document.getElementById('nationality').value;
+      const gender = document.getElementById('gender').value;
+      const age = parseInt(document.getElementById('age').value, 10);
 
-      if (!nationality || !gender || !age) {
-        alert("すべての情報を入力してください / Please fill out all fields.");
-        return;
-      }
-
-      navigator.geolocation.getCurrentPosition(function (position) {
+      navigator.geolocation.getCurrentPosition(function(position) {
         const latitude = position.coords.latitude;
         const longitude = position.coords.longitude;
 
@@ -63,14 +62,28 @@
             gender,
             age
           })
-        })
-        .then(() => alert("位置情報送信完了！ / Location sent successfully!"))
-        .catch(() => alert("送信に失敗しました / Failed to send location"));
+        }).then(() => {
+          console.log(`送信${sendCount + 1}回目完了`);
+        }).catch(() => {
+          alert("送信に失敗しました");
+        });
       });
     }
 
-    // 5分ごとに自動送信（300,000ミリ秒）
-    setInterval(sendLocation, 300000);
+    function startSending() {
+      sendLocation(); // 最初の1回
+      sendCount = 1;
+
+      intervalId = setInterval(() => {
+        if (sendCount < maxSends) {
+          sendLocation();
+          sendCount++;
+        } else {
+          clearInterval(intervalId);
+          alert("1時間の送信が完了しました。Thank you!");
+        }
+      }, 5 * 60 * 1000); // 5分ごと
+    }
   </script>
 </body>
 </html>
