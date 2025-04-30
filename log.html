@@ -46,15 +46,17 @@
         console.log('timestamp raw value:', row.timestamp);
 let formatted = '(変換失敗)';
 try {
-  const isoFixed = row.timestamp
-    .replace(' ', 'T')
-    .replace(/\+00$/, 'Z')
-    .replace(/\+00:00$/, 'Z');
-  const utcDate = new Date(isoFixed);
-  const jstDate = new Date(utcDate.getTime() + 9 * 60 * 60 * 1000); // ← ここが重要！
-  formatted = jstDate.toLocaleString('ja-JP');
+  const parts = row.timestamp.match(
+    /^(\d+)-(\d+)-(\d+)T(\d+):(\d+):(\d+)\+00:00$/
+  );
+  if (parts) {
+    const [, y, m, d, h, min, s] = parts.map(Number);
+    const utc = new Date(Date.UTC(y, m - 1, d, h, min, s));
+    const jst = new Date(utc.getTime() + 9 * 60 * 60 * 1000);
+    formatted = jst.toLocaleString('ja-JP');
+  }
 } catch (e) {
-  console.error('時刻変換エラー:', e);
+  console.error('正規化エラー:', e);
 }
 
         const entry = document.createElement('div');
