@@ -50,12 +50,11 @@ try {
     .replace(' ', 'T')
     .replace(/\+00$/, 'Z')
     .replace(/\+00:00$/, 'Z');
-  const jstTime = new Date(isoFixed);
+  const jstTime = new Date(isoFixed); // ← UTCをJSTとして扱っていたのでそのまま使う！
   formatted = jstTime.toLocaleString('ja-JP');
 } catch (e) {
   console.error('時刻変換エラー:', e);
 }
-
         const entry = document.createElement('div');
         entry.className = 'entry';
         entry.innerHTML = `
