@@ -6,7 +6,10 @@
   <style>
     body { font-family: sans-serif; padding: 20px; }
     h1 { color: #333; }
-    .entry { border-bottom: 1px solid #ccc; padding: 10px 0; }
+    .entry {
+      border-bottom: 1px solid #ccc;
+      padding: 10px 0;
+    }
   </style>
 </head>
 <body>
@@ -33,16 +36,21 @@
         return
       }
 
-      if (data.length === 0) {
+      if (!data || data.length === 0) {
         container.innerHTML = 'データがありません。'
         return
       }
 
       container.innerHTML = ''
       data.forEach(row => {
-        const utcTime = new Date(row.timestamp)
-        const jstTime = new Date(utcTime.getTime() + 9 * 60 * 60 * 1000)
-        const formatted = jstTime.toLocaleString('ja-JP')
+        let formatted = '(変換失敗)'
+        try {
+          const utcTime = new Date(row.timestamp + 'Z') // ← text型用のZ追加
+          const jstTime = new Date(utcTime.getTime() + 9 * 60 * 60 * 1000)
+          formatted = jstTime.toLocaleString('ja-JP')
+        } catch (e) {
+          console.error('時刻変換エラー:', e)
+        }
 
         const entry = document.createElement('div')
         entry.className = 'entry'
