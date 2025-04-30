@@ -3,76 +3,113 @@
 <head>
   <meta charset="UTF-8">
   <title>旅友WiFi 位置情報PoC</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+    }
+    label {
+      display: block;
+      margin-top: 10px;
+    }
+    input, select {
+      width: 200px;
+      padding: 5px;
+    }
+    button {
+      margin-top: 15px;
+      padding: 10px 15px;
+    }
+    .notice {
+      margin-top: 20px;
+      font-size: 14px;
+      color: gray;
+    }
+  </style>
 </head>
 <body>
-  <h1>旅友WiFi 位置情報PoC</h1>
-  <p>このサービスはPoC（概念実証）であり、収集されたデータは位置情報分析の目的でのみ使用されます。</p>
-  <p>This service is a PoC (Proof of Concept). Collected data will be used solely for location analysis.</p>
+  <h1>旅友WiFi | 位置情報PoC</h1>
 
-  <label for="nationality">国籍 / Nationality:</label>
-  <input type="text" id="nationality"><br><br>
+  <label>国籍 / Nationality:
+    <input type="text" id="nationality">
+  </label>
 
-  <label for="gender">性別 / Gender:</label>
-  <input type="text" id="gender"><br><br>
+  <label>性別 / Gender:
+    <select id="gender">
+      <option value="">選択してください / Please select</option>
+      <option value="Male">男性 / Male</option>
+      <option value="Female">女性 / Female</option>
+      <option value="Other">その他 / Other</option>
+    </select>
+  </label>
 
-  <label for="age">年齢 / Age:</label>
-  <input type="number" id="age"><br><br>
+  <label>年齢 / Age:
+    <input type="number" id="age" min="0">
+  </label>
 
   <button onclick="sendLocation()">位置情報を送信 / Send Location</button>
 
+  <div class="notice">
+    ※このページはPoC（概念実証）です。<br>
+    This page is a PoC (Proof of Concept).<br><br>
+    利用規約に同意のうえ、ご利用ください。<br>
+    By using this page, you agree to our terms of use.
+  </div>
+
   <script>
-    let intervalId;
+    function getLocalTimestamp() {
+      const now = new Date();
+      const y = now.getFullYear();
+      const m = String(now.getMonth() + 1).padStart(2, '0');
+      const d = String(now.getDate()).padStart(2, '0');
+      const hh = String(now.getHours()).padStart(2, '0');
+      const mm = String(now.getMinutes()).padStart(2, '0');
+      const ss = String(now.getSeconds()).padStart(2, '0');
+      return `${y}-${m}-${d} ${hh}:${mm}:${ss}`;
+    }
 
-    function sendLocation() {
-      const nationality = document.getElementById("nationality").value;
-      const gender = document.getElementById("gender").value;
-      const age = parseInt(document.getElementById("age").value);
-
-      if (!nationality || !gender || !age) {
-        alert("国籍・性別・年齢をすべて入力してください。");
-        return;
-      }
-
-      navigator.geolocation.getCurrentPosition(async function(position) {
+    async function sendLocation() {
+      navigator.geolocation.getCurrentPosition(async (position) => {
         const latitude = position.coords.latitude;
         const longitude = position.coords.longitude;
+        const timestamp = getLocalTimestamp();
 
-        const now = new Date();
-        const jst = new Date(now.getTime() + 9 * 60 * 60 * 1000); // JSTに変換
-        const timestamp = jst.toISOString();
+        const nationality = document.getElementById("nationality").value;
+        const gender = document.getElementById("gender").value;
+        const age = parseInt(document.getElementById("age").value) || null;
 
-        await fetch("https://tabitomo-server.onrender.com/location", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            latitude,
-            longitude,
-            timestamp,
-            nationality,
-            gender,
-            age
-          })
-        });
+        const body = {
+          latitude,
+          longitude,
+          timestamp,
+          nationality,
+          gender,
+          age
+        };
 
-        alert("位置情報送信完了！");
-      }, function(error) {
-        alert("位置情報の取得に失敗しました: " + error.message);
+        try {
+          await fetch("https://tabitomo-server.onrender.com/location", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body)
+          });
+          alert("位置情報送信完了！");
+        } catch (e) {
+          alert("送信に失敗しました");
+        }
       });
-
-      // 自動送信（5分間隔）
-      if (!intervalId) {
-        intervalId = setInterval(() => {
-          sendLocation();
-        }, 5 * 60 * 1000); // 5分
-        // 1時間で止める
-        setTimeout(() => {
-          clearInterval(intervalId);
-          intervalId = null;
-        }, 60 * 60 * 1000); // 1時間
-      }
     }
+
+    // 5分ごとに自動送信（1時間で停止）
+    let count = 0;
+    const interval = setInterval(() => {
+      if (count >= 12) {
+        clearInterval(interval);
+      } else {
+        sendLocation();
+        count++;
+      }
+    }, 5 * 60 * 1000); // 5分
   </script>
 </body>
 </html>
