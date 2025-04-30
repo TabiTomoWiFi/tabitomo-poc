@@ -43,6 +43,7 @@
 
       container.innerHTML = '';
       data.forEach(row => {
+        console.log('timestamp raw value:', row.timestamp);
         let formatted = '(変換失敗)';
 　 try {
   const utcTime = new Date(row.timestamp.replace(' ', 'T') + 'Z');
