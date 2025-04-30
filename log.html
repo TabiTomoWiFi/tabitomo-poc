@@ -27,35 +27,33 @@
       const { data, error } = await supabase
         .from('location')
         .select('*')
-        .order('timestamp', { ascending: false })
+        .order('timestamp', { ascending: false });
 
-      const container = document.getElementById('log-container')
+      const container = document.getElementById('log-container');
       if (error) {
-        container.innerHTML = 'エラーが発生しました。'
-        console.error(error)
-        return
+        container.innerHTML = 'エラーが発生しました。';
+        console.error(error);
+        return;
       }
 
       if (!data || data.length === 0) {
-        container.innerHTML = 'データがありません。'
-        return
+        container.innerHTML = 'データがありません。';
+        return;
       }
 
-      container.innerHTML = ''
+      container.innerHTML = '';
       data.forEach(row => {
-let formatted = '(変換失敗)';
-try {
-  // '2025-05-01 00:16:03' → '2025-05-01T00:16:03Z'
-  const utcTime = new Date(row.timestamp.replace(' ', 'T') + 'Z');
-  const jstTime = new Date(utcTime.getTime() + 9 * 60 * 60 * 1000);
-  formatted = jstTime.toLocaleString('ja-JP');
-} catch (e) {
-  console.error('時刻変換エラー:', e);
-}
+        let formatted = '(変換失敗)';
+        try {
+          const utcTime = new Date(row.timestamp.replace(' ', 'T') + 'Z');
+          const jstTime = new Date(utcTime.getTime() + 9 * 60 * 60 * 1000);
+          formatted = jstTime.toLocaleString('ja-JP');
+        } catch (e) {
+          console.error('時刻変換エラー:', e);
         }
 
-        const entry = document.createElement('div')
-        entry.className = 'entry'
+        const entry = document.createElement('div');
+        entry.className = 'entry';
         entry.innerHTML = `
           <strong>UUID:</strong> ${row.uuid || '(なし)'}<br>
           <strong>緯度:</strong> ${row.latitude}<br>
@@ -64,12 +62,12 @@ try {
           <strong>性別:</strong> ${row.gender || '(未入力)'}<br>
           <strong>年齢:</strong> ${row.age || '(未入力)'}<br>
           <strong>送信時刻（JST）:</strong> ${formatted}
-        `
-        container.appendChild(entry)
-      })
+        `;
+        container.appendChild(entry);
+      });
     }
 
-    fetchLogs()
+    fetchLogs();
   </script>
 </body>
 </html>
