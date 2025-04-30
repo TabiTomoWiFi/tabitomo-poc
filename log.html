@@ -45,13 +45,13 @@
       data.forEach(row => {
         console.log('timestamp raw value:', row.timestamp);
         let formatted = '(変換失敗)';
-　 try {
-  const utcTime = new Date(row.timestamp.replace(' ', 'T') + 'Z');
-  const jstTime = new Date(utcTime.getTime() + 9 * 60 * 60 * 1000);
-  formatted = jstTime.toLocaleString('ja-JP');
-} catch (e) {
-  console.error('時刻変換エラー:', e);
-}
+        try {
+          const utcTime = new Date(row.timestamp.replace(' ', 'T') + 'Z');
+          const jstTime = new Date(utcTime.getTime() + 9 * 60 * 60 * 1000);
+          formatted = jstTime.toLocaleString('ja-JP');
+        } catch (e) {
+          console.error('時刻変換エラー:', e);
+        }
 
         const entry = document.createElement('div');
         entry.className = 'entry';
