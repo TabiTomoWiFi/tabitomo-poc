@@ -1,1 +1,74 @@
-log
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>旅友WiFi - 位置情報ログ（JST）</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+    }
+    h1 {
+      color: #333;
+    }
+    .entry {
+      border-bottom: 1px solid #ccc;
+      padding: 10px 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>📍 位置情報送信ログ（日本時間表示）</h1>
+  <div id="log-container">読み込み中...</div>
+
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+
+    // 🔧 あなたの Supabase プロジェクト情報に書き換えてください
+    const supabaseUrl = 'https://your-project.supabase.co'
+    const supabaseKey = 'your-public-anon-key'
+    const supabase = createClient(supabaseUrl, supabaseKey)
+
+    async function fetchLogs() {
+      const { data, error } = await supabase
+        .from('location')
+        .select('*')
+        .order('timestamp', { ascending: false })
+
+      const container = document.getElementById('log-container')
+      if (error) {
+        container.innerHTML = 'エラーが発生しました。'
+        console.error(error)
+        return
+      }
+
+      if (data.length === 0) {
+        container.innerHTML = 'データがありません。'
+        return
+      }
+
+      container.innerHTML = ''
+      data.forEach(row => {
+        const utcTime = new Date(row.timestamp)
+        const jstTime = new Date(utcTime.getTime() + 9 * 60 * 60 * 1000)
+        const formatted = jstTime.toLocaleString('ja-JP')
+
+        const entry = document.createElement('div')
+        entry.className = 'entry'
+        entry.innerHTML = `
+          <strong>UUID:</strong> ${row.uuid || '(なし)'}<br>
+          <strong>緯度:</strong> ${row.latitude}<br>
+          <strong>経度:</strong> ${row.longitude}<br>
+          <strong>国籍:</strong> ${row.nationality || '(未入力)'}<br>
+          <strong>性別:</strong> ${row.gender || '(未入力)'}<br>
+          <strong>年齢:</strong> ${row.age || '(未入力)'}<br>
+          <strong>送信時刻（JST）:</strong> ${formatted}
+        `
+        container.appendChild(entry)
+      })
+    }
+
+    fetchLogs()
+  </script>
+</body>
+</html>
