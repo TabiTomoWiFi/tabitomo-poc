@@ -1,92 +1,69 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>旅友WiFi 位置情報PoC</title>
-  <style>
-    body { font-family: sans-serif; margin: 30px; }
-    label, input, select { display: block; margin-top: 10px; }
-    .note { color: red; margin-top: 20px; font-weight: bold; }
-  </style>
 </head>
 <body>
-  <h1>旅友WiFi 位置情報PoC</h1>
+  <h1>旅友WiFi | 位置情報PoC</h1>
+  <p>※このサービスはPoC（概念実証）です。ご利用には同意が必要です。</p>
+  <p>This is a Proof of Concept (PoC) for location tracking using TabitomoWiFi.</p>
 
-  <div class="note">※これはPoC（概念実証）用のページです。位置情報を自動送信します。</div>
+  <p><a href="terms.html" target="_blank">利用規約 / Terms of Use</a></p>
 
-  <label>国籍 / Nationality:
-    <input type="text" id="nationality" placeholder="例：Japan">
-  </label>
-
-  <label>性別 / Gender:
-    <select id="gender">
-      <option value="">選択してください</option>
-      <option value="Male">男性 / Male</option>
-      <option value="Female">女性 / Female</option>
-      <option value="Other">その他 / Other</option>
-    </select>
-  </label>
-
-  <label>年齢 / Age:
-    <input type="number" id="age" placeholder="例：30">
-  </label>
-
-  <button onclick="startSending()">位置情報を送信 / Start Location Tracking</button>
-
-  <p style="margin-top: 30px;">
-    <a href="terms.html" target="_blank">▶ 利用規約 / Terms of Service</a>
-  </p>
+  <form id="userForm">
+    <label>国籍 / Nationality:
+      <input type="text" id="nationality" required />
+    </label><br/>
+    <label>性別 / Gender:
+      <input type="text" id="gender" required />
+    </label><br/>
+    <label>年齢 / Age:
+      <input type="number" id="age" required />
+    </label><br/>
+    <button type="submit">位置情報を送信 / Send Location</button>
+  </form>
 
   <script>
-    let sendCount = 0;
-    const maxSends = 12; // 最大12回（＝1時間）
-    let intervalId;
+    function getJapanTimeISOString() {
+      const now = new Date();
+      const jst = new Date(now.getTime() + 9 * 60 * 60 * 1000);
+      return jst.toISOString();
+    }
 
-    function sendLocation() {
-      const nationality = document.getElementById('nationality').value;
-      const gender = document.getElementById('gender').value;
-      const age = parseInt(document.getElementById('age').value, 10);
-
-      navigator.geolocation.getCurrentPosition(function(position) {
+    async function sendLocation() {
+      navigator.geolocation.getCurrentPosition(async (position) => {
         const latitude = position.coords.latitude;
         const longitude = position.coords.longitude;
+        const timestamp = getJapanTimeISOString();
 
-        fetch("https://tabitomo-server.onrender.com/location", {
+        const nationality = document.getElementById("nationality").value;
+        const gender = document.getElementById("gender").value;
+        const age = parseInt(document.getElementById("age").value, 10);
+
+        const res = await fetch("https://tabitomo-server.onrender.com/location", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            latitude,
-            longitude,
-            timestamp: new Date().toISOString(),
-            nationality,
-            gender,
-            age
-          })
-        }).then(() => {
-          console.log(`送信${sendCount + 1}回目完了`);
-        }).catch(() => {
-          alert("送信に失敗しました");
+          body: JSON.stringify({ latitude, longitude, timestamp, nationality, gender, age }),
         });
+
+        if (res.ok) {
+          alert("位置情報送信完了！");
+        } else {
+          alert("送信に失敗しました");
+        }
+      }, () => {
+        alert("位置情報の取得に失敗しました。");
       });
     }
 
-    function startSending() {
-      sendLocation(); // 最初の1回
-      sendCount = 1;
+    document.getElementById("userForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      sendLocation();
+    });
 
-      intervalId = setInterval(() => {
-        if (sendCount < maxSends) {
-          sendLocation();
-          sendCount++;
-        } else {
-          clearInterval(intervalId);
-          alert("1時間の送信が完了しました。Thank you!");
-        }
-      }, 5 * 60 * 1000); // 5分ごと
-    }
+    // 自動送信（5分ごと）
+    setInterval(sendLocation, 5 * 60 * 1000);
   </script>
-  <p style="margin-top: 20px;">
-  <a href="terms.html" target="_blank">利用規約 / Terms of Service</a>
-</p>
 </body>
 </html>
