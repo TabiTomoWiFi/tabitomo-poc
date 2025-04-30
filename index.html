@@ -5,6 +5,27 @@
 <title>旅友WiFi PoC</title>
 </head>
 <body>
+  <button onclick="sendLocation()">位置情報を送信</button>
+
+<script>
+function sendLocation() {
+  navigator.geolocation.getCurrentPosition(function (position) {
+    const latitude = position.coords.latitude;
+    const longitude = position.coords.longitude;
+
+    fetch("https://tabitomo-server.onrender.com/location", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        latitude,
+        longitude,
+        timestamp: new Date().toISOString()
+      })
+    }).then(() => alert("位置情報送信完了！"));
+  });
+}
+</script>
+
 <h1>旅友WiFi PoC テストページ</h1>
 <p>このページは位置情報を取得し、Googleスプレッドシートに送信します。</p>
 <button onclick="getLocation()">位置情報を送信する</button>
