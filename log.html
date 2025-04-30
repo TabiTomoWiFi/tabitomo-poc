@@ -31,13 +31,13 @@
 
       const container = document.getElementById('log-container');
       if (error) {
-        container.innerHTML = 'エラーが発生しました。';
+        container.textContent = 'エラーが発生しました。';
         console.error(error);
         return;
       }
 
       if (!data || data.length === 0) {
-        container.innerHTML = 'データがありません。';
+        container.textContent = 'データがありません。';
         return;
       }
 
@@ -45,10 +45,10 @@
       data.forEach(row => {
         let formatted = '(変換失敗)';
         try {
-          const jstDate = new Date(row.timestamp);
-          formatted = jstDate.toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' });
+          const date = new Date(row.timestamp);  // Supabaseが返すのはUTC基準
+          formatted = date.toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' });
         } catch (e) {
-          console.error('時刻変換エラー:', e);
+          console.error('日付変換失敗:', e);
         }
 
         const entry = document.createElement('div');
