@@ -1,69 +1,78 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html>
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>旅友WiFi 位置情報PoC</title>
 </head>
 <body>
-  <h1>旅友WiFi | 位置情報PoC</h1>
-  <p>※このサービスはPoC（概念実証）です。ご利用には同意が必要です。</p>
-  <p>This is a Proof of Concept (PoC) for location tracking using TabitomoWiFi.</p>
+  <h1>旅友WiFi 位置情報PoC</h1>
+  <p>このサービスはPoC（概念実証）であり、収集されたデータは位置情報分析の目的でのみ使用されます。</p>
+  <p>This service is a PoC (Proof of Concept). Collected data will be used solely for location analysis.</p>
 
-  <p><a href="terms.html" target="_blank">利用規約 / Terms of Use</a></p>
+  <label for="nationality">国籍 / Nationality:</label>
+  <input type="text" id="nationality"><br><br>
 
-  <form id="userForm">
-    <label>国籍 / Nationality:
-      <input type="text" id="nationality" required />
-    </label><br/>
-    <label>性別 / Gender:
-      <input type="text" id="gender" required />
-    </label><br/>
-    <label>年齢 / Age:
-      <input type="number" id="age" required />
-    </label><br/>
-    <button type="submit">位置情報を送信 / Send Location</button>
-  </form>
+  <label for="gender">性別 / Gender:</label>
+  <input type="text" id="gender"><br><br>
+
+  <label for="age">年齢 / Age:</label>
+  <input type="number" id="age"><br><br>
+
+  <button onclick="sendLocation()">位置情報を送信 / Send Location</button>
 
   <script>
-    function getJapanTimeISOString() {
-      const now = new Date();
-      const jst = new Date(now.getTime() + 9 * 60 * 60 * 1000);
-      return jst.toISOString();
-    }
+    let intervalId;
 
-    async function sendLocation() {
-      navigator.geolocation.getCurrentPosition(async (position) => {
+    function sendLocation() {
+      const nationality = document.getElementById("nationality").value;
+      const gender = document.getElementById("gender").value;
+      const age = parseInt(document.getElementById("age").value);
+
+      if (!nationality || !gender || !age) {
+        alert("国籍・性別・年齢をすべて入力してください。");
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(async function(position) {
         const latitude = position.coords.latitude;
         const longitude = position.coords.longitude;
-        const timestamp = getJapanTimeISOString();
 
-        const nationality = document.getElementById("nationality").value;
-        const gender = document.getElementById("gender").value;
-        const age = parseInt(document.getElementById("age").value, 10);
+        const now = new Date();
+        const jst = new Date(now.getTime() + 9 * 60 * 60 * 1000); // JSTに変換
+        const timestamp = jst.toISOString();
 
-        const res = await fetch("https://tabitomo-server.onrender.com/location", {
+        await fetch("https://tabitomo-server.onrender.com/location", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ latitude, longitude, timestamp, nationality, gender, age }),
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            latitude,
+            longitude,
+            timestamp,
+            nationality,
+            gender,
+            age
+          })
         });
 
-        if (res.ok) {
-          alert("位置情報送信完了！");
-        } else {
-          alert("送信に失敗しました");
-        }
-      }, () => {
-        alert("位置情報の取得に失敗しました。");
+        alert("位置情報送信完了！");
+      }, function(error) {
+        alert("位置情報の取得に失敗しました: " + error.message);
       });
+
+      // 自動送信（5分間隔）
+      if (!intervalId) {
+        intervalId = setInterval(() => {
+          sendLocation();
+        }, 5 * 60 * 1000); // 5分
+        // 1時間で止める
+        setTimeout(() => {
+          clearInterval(intervalId);
+          intervalId = null;
+        }, 60 * 60 * 1000); // 1時間
+      }
     }
-
-    document.getElementById("userForm").addEventListener("submit", (e) => {
-      e.preventDefault();
-      sendLocation();
-    });
-
-    // 自動送信（5分ごと）
-    setInterval(sendLocation, 5 * 60 * 1000);
   </script>
 </body>
 </html>
