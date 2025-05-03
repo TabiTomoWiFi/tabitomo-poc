@@ -1,83 +1,83 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <title>旅友WiFi 位置情報ログ一覧 / Location Logs</title>
+  <meta charset="UTF-8">
+  <title>旅友WiFi - PoC</title>
   <style>
-    body {
-      font-family: sans-serif;
-      padding: 20px;
-      background-color: #f9f9f9;
-    }
-    h1 {
-      margin-bottom: 1em;
-    }
-    .entry {
-      background-color: white;
-      padding: 15px;
-      margin-bottom: 15px;
-      border-left: 5px solid #0a74da;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    .entry strong {
-      display: inline-block;
-      width: 120px;
-    }
+    body { font-family: sans-serif; padding: 20px; }
+    label, select, input { margin-bottom: 10px; display: block; }
   </style>
 </head>
 <body>
-  <h1>旅友WiFi 位置情報ログ一覧（日本時間）</h1>
-  <p>This log viewer shows location tracking records collected during the Tabitomo WiFi PoC.</p>
+  <h1>旅友WiFi（PoC）</h1>
+  <p>※このサービスは実証実験（PoC）です。位置情報を5分ごとに取得・送信します。</p>
+  <p>This is a Proof of Concept (PoC) service. Your location will be sent every 5 minutes.</p>
 
-  <div id="log-container">読み込み中...</div>
+  <label>国籍 / Nationality:
+    <input type="text" id="nationality">
+  </label>
+  <label>性別 / Gender:
+    <select id="gender">
+      <option value="male">男性 / Male</option>
+      <option value="female">女性 / Female</option>
+      <option value="other">その他 / Other</option>
+    </select>
+  </label>
+  <label>年齢 / Age:
+    <input type="number" id="age">
+  </label>
+
+  <p>
+    <strong>利用規約 / Terms of Use:</strong><br>
+    このサービスは位置情報を収集します。実験目的で使用され、商用利用されません。<br>
+    This service collects location data. It is used for experimental purposes only and not for commercial use.
+  </p>
+
+  <button onclick="startTracking()">位置情報の送信を開始 / Start Tracking</button>
+
+  <div id="status"></div>
 
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
 
-    const supabaseUrl = 'https://YOUR_PROJECT.supabase.co';       // ← あなたの Supabase プロジェクトURLに変更
-    const supabaseKey = 'YOUR_PUBLIC_ANON_KEY';                   // ← 公開anonキーに変更
+    const supabaseUrl = 'https://YOUR_PROJECT.supabase.co'; // ←あなたのURLに変更
+    const supabaseKey = 'YOUR_PUBLIC_ANON_KEY'; // ←あなたのキーに変更
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    async function fetchLocationLogs() {
-      const { data, error } = await supabase
-        .from('location')
-        .select('*')
-        .order('timestamp', { ascending: false });
+    let intervalId = null;
 
-      if (error) {
-        console.error('取得エラー:', error);
-        return;
-      }
+    async function sendLocation() {
+      navigator.geolocation.getCurrentPosition(async (position) => {
+        const { latitude, longitude } = position.coords;
+        const nationality = document.getElementById('nationality').value;
+        const gender = document.getElementById('gender').value;
+        const age = parseInt(document.getElementById('age').value);
 
-      const container = document.getElementById('log-container');
-      container.innerHTML = '';
+        const { error } = await supabase.from('location').insert([{
+          timestamp: new Date().toISOString(),
+          latitude,
+          longitude,
+          nationality,
+          gender,
+          age
+        }]);
 
-      data.forEach(row => {
-        let formattedTime = row.timestamp;
-        try {
-          const utc = new Date(row.timestamp.replace(' ', 'T'));
-          const jst = new Date(utc.getTime() + 9 * 60 * 60 * 1000);
-          formattedTime = jst.toLocaleString('ja-JP');
-        } catch (e) {
-          console.warn('日付変換に失敗:', row.timestamp);
+        const status = document.getElementById('status');
+        if (error) {
+          console.error('送信エラー:', error);
+          status.textContent = '送信に失敗しました';
+        } else {
+          status.textContent = `送信しました: ${new Date().toLocaleTimeString()}`;
         }
-
-        const entry = document.createElement('div');
-        entry.className = 'entry';
-        entry.innerHTML = `
-          <strong>UUID:</strong> ${row.uuid || '(なし)'}<br>
-          <strong>緯度:</strong> ${row.latitude}<br>
-          <strong>経度:</strong> ${row.longitude}<br>
-          <strong>国籍:</strong> ${row.nationality || '未入力'}<br>
-          <strong>性別:</strong> ${row.gender || '未入力'}<br>
-          <strong>年齢:</strong> ${row.age || '未入力'}<br>
-          <strong>記録時刻（JST）:</strong> ${formattedTime}
-        `;
-        container.appendChild(entry);
       });
     }
 
-    fetchLocationLogs();
+    window.startTracking = function () {
+      if (intervalId) return;
+      sendLocation();
+      intervalId = setInterval(sendLocation, 5 * 60 * 1000); // 5分ごと
+      document.getElementById('status').textContent = '送信を開始しました';
+    }
   </script>
 </body>
 </html>
